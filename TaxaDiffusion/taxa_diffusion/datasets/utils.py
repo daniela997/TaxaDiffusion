@@ -1,7 +1,7 @@
 import json
 import pandas as pd
 
-path = 'datasets/classified_images_final.json'
+path = '/home/daniela/other/TaxaDiffusion/TaxaDiffusion/taxa_diffusion/datasets/classified_images_final.json'
 
 with open(path) as f:
     data = json.load(f)
@@ -10,7 +10,7 @@ fish_taxonomy = {
     'kingdom': {}
 }
 
-fish_path = "datasets/fish_data/final.csv"
+fish_path = "/home/daniela/other/TaxaDiffusion/TaxaDiffusion/taxa_diffusion/datasets/fish_data/final.csv"
 fish_data = pd.read_csv(fish_path)
 for _, row in fish_data.iterrows():
     kingdom = "1"
@@ -46,7 +46,7 @@ bio_scan_taxonomy = {
     'kingdom': {}
 }
 
-bio_scan_path = "datasets/bio_scan_data/data.csv"
+bio_scan_path = "/home/daniela/other/TaxaDiffusion/TaxaDiffusion/taxa_diffusion/datasets/bio_scan_data/data.csv"
 bio_scan_data = pd.read_csv(bio_scan_path)
 for _, row in bio_scan_data.iterrows():
     kingdom = "1"
@@ -112,6 +112,36 @@ for category in data['categories']:
     
     taxonomy['kingdom'][kingdom][phylum][class_][order][family][genus].append(species)
 
+# Build IFCB taxonomy from training CSV
+ifcb_taxonomy = {
+    'kingdom': {}
+}
+
+ifcb_path = '/scratch/datasets/other/IFCB_FishNet_Format/anns/ifcb_train.csv'
+ifcb_data = pd.read_csv(ifcb_path)
+for _, row in ifcb_data.iterrows():
+    kingdom = row['Kingdom'] if not pd.isna(row['Kingdom']) else 'Unknown'
+    phylum = row['Phylum'] if not pd.isna(row['Phylum']) else 'Unknown'
+    class_ = row['Class'] if not pd.isna(row['Class']) else 'Unknown'
+    order = row['Order'] if not pd.isna(row['Order']) else 'Unknown'
+    family = row['Family'] if not pd.isna(row['Family']) else 'Unknown'
+    genus = row['Genus'] if not pd.isna(row['Genus']) else 'Unknown'
+    species = row['species'] if not pd.isna(row['species']) else 'Unknown'
+
+    if kingdom not in ifcb_taxonomy['kingdom']:
+        ifcb_taxonomy['kingdom'][kingdom] = {}
+    if phylum not in ifcb_taxonomy['kingdom'][kingdom]:
+        ifcb_taxonomy['kingdom'][kingdom][phylum] = {}
+    if class_ not in ifcb_taxonomy['kingdom'][kingdom][phylum]:
+        ifcb_taxonomy['kingdom'][kingdom][phylum][class_] = {}
+    if order not in ifcb_taxonomy['kingdom'][kingdom][phylum][class_]:
+        ifcb_taxonomy['kingdom'][kingdom][phylum][class_][order] = {}
+    if family not in ifcb_taxonomy['kingdom'][kingdom][phylum][class_][order]:
+        ifcb_taxonomy['kingdom'][kingdom][phylum][class_][order][family] = {}
+    if genus not in ifcb_taxonomy['kingdom'][kingdom][phylum][class_][order][family]:
+        ifcb_taxonomy['kingdom'][kingdom][phylum][class_][order][family][genus] = []
+    if species not in ifcb_taxonomy['kingdom'][kingdom][phylum][class_][order][family][genus]:
+        ifcb_taxonomy['kingdom'][kingdom][phylum][class_][order][family][genus].append(species)
 
 def get_keys_at_level(taxonomy, level):
     """

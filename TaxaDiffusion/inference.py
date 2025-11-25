@@ -34,7 +34,7 @@ from transformers import CLIPTextModel, CLIPTokenizer, CLIPVisionModel
 from taxa_diffusion.utils import instantiate_from_config
 from taxa_diffusion.utils import load_checkpoint
 from taxa_diffusion.diff_pipeline.pipeline_stable_diffusion_taxonomy import StableDiffusionTaxonomyPipeline
-from taxa_diffusion.datasets.toxonomy import get_keys_at_level, get_lineage_bottom_to_top, fish_taxonomy, taxonomy, bio_scan_taxonomy
+from taxa_diffusion.datasets.utils import get_keys_at_level, get_lineage_bottom_to_top, fish_taxonomy, taxonomy, bio_scan_taxonomy, ifcb_taxonomy
 
 
 
@@ -147,14 +147,17 @@ def main(
     level_name = config.dataset.test.level_name
     sample_number = config.dataset.test.sample_number
 
-    if config.train.level_number == 7:
-        unique_names_level = get_keys_at_level(taxonomy=taxonomy, level=level_name)
-    else:
-        if 'name' in config.dataset.test and config.dataset.test.name == 'bio_scan':
-            unique_names_level = get_keys_at_level(taxonomy=bio_scan_taxonomy, level=level_name)
-        else:
-            unique_names_level = get_keys_at_level(taxonomy=fish_taxonomy, level=level_name)
-            
+    # if config.train.level_number == 7:
+    #     unique_names_level = get_keys_at_level(taxonomy=taxonomy, level=level_name)
+    # else:
+    #     if 'name' in config.dataset.test and config.dataset.test.name == 'bio_scan':
+    #         unique_names_level = get_keys_at_level(taxonomy=bio_scan_taxonomy, level=level_name)
+    #     elif 'name' in config.dataset.test and config.dataset.test.name == 'ifcb':
+    #         unique_names_level = get_keys_at_level(taxonomy=ifcb_taxonomy, level=level_name)
+    #     else:
+    #         unique_names_level = get_keys_at_level(taxonomy=fish_taxonomy, level=level_name)
+    unique_names_level = get_keys_at_level(taxonomy=ifcb_taxonomy, level=level_name)
+
     # Move models to GPU
     vae.to(local_rank)
     unet.to(local_rank)
@@ -214,13 +217,18 @@ def main(
 
         logging.info(f"target_name is {target_name} and will generate")
 
-        if config.train.level_number == 7:
-            lineage = get_lineage_bottom_to_top(taxonomy, target_name, level_name, logging)
-        else:
-            if 'name' in config.dataset.test and config.dataset.test.name == 'bio_scan':
-                lineage = get_lineage_bottom_to_top(bio_scan_taxonomy, target_name, level_name, logging)
-            else:
-                lineage = get_lineage_bottom_to_top(fish_taxonomy, target_name, level_name, logging)
+        # if config.train.level_number == 7:
+        #     lineage = get_lineage_bottom_to_top(taxonomy, target_name, level_name, logging)
+        # else:
+        #     if 'name' in config.dataset.test and config.dataset.test.name == 'bio_scan':
+        #         lineage = get_lineage_bottom_to_top(bio_scan_taxonomy, target_name, level_name, logging)
+        #     else:
+        #         lineage = get_lineage_bottom_to_top(fish_taxonomy, target_name, level_name, logging)
+
+        lineage = get_lineage_bottom_to_top(ifcb_taxonomy, target_name, level_name, logging)
+        if lineage is None:
+            logging.info(f"Skipping {target_name} - not found in taxonomy")
+            continue  # Skip to next species
 
         if config.train.level_number == 7:
             conditions_list_name = [

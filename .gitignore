@@ -1,0 +1,6 @@
+TaxaDiffusion/config/ifcb_diffusion.yaml
+TaxaDiffusion/taxa_diffusion/__pycache__/
+TaxaDiffusion/taxa_diffusion/datasets/__pycache__/
+TaxaDiffusion/taxa_diffusion/diff_pipeline/__pycache__/
+TaxaDiffusion/taxa_diffusion/models/__pycache__/
+TaxaDiffusion/wandb/

@@ -2,11 +2,11 @@
 #SBATCH --job-name=taxa_diffusion
 #SBATCH --time=6-22:40:00
 
-#SBATCH --nodes=4
-#SBATCH --ntasks-per-node=4
-#SBATCH --gres=gpu:4
-#SBATCH --ntasks=16
-#SBATCH --cpus-per-task=18
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=2
+#SBATCH --gres=gpu:2
+#SBATCH --ntasks=2
+#SBATCH --cpus-per-task=16
 
 
 export MASTER_PORT=12340
@@ -27,4 +27,4 @@ conda info --envs
 conda activate taxa_diffusion
 
 echo "Starting accelerate..."
-srun python3 train.py --config configs/taxa_diffusion.yaml --launcher slurm
+srun python3 train.py --config configs/ifcb_diffusion.yaml --launcher slurm --wandb

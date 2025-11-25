@@ -88,6 +88,44 @@ class FishDataset(Dataset):
         x, y, w, h = bbox['x'], bbox['y'], bbox['w'], bbox['h']
         return image[y:y + h, x:x + w]
     
+    def pad_to_square(self, image):
+        """
+        Pad grayscale or color image to square using most common pixel value.
+        Works with both grayscale (H,W) and RGB (H,W,3) images.
+        """
+        if len(image.shape) == 2:  # Grayscale
+            H, W = image.shape
+            C = 1
+        else:  # Color (RGB)
+            H, W, C = image.shape
+        
+        # Find most common pixel value
+        if C == 1 or len(image.shape) == 2:
+            # Grayscale - find mode of pixel values
+            pad_value = int(np.median(image.flatten()))  # Use median as fallback
+            try:
+                from scipy import stats
+                pad_value = int(stats.mode(image.flatten(), keepdims=True).mode[0])
+            except:
+                pass  # Fallback to median if scipy unavailable
+        else:
+            # RGB - find mode for each channel, use average
+            pad_value = int(np.median(image.flatten()))
+        
+        # Pad to square
+        if H == W:
+            return image
+        elif H > W:
+            pad_width = ((0, 0), ((H - W) // 2, (H - W) - (H - W) // 2))
+            if C > 1:
+                pad_width = ((0, 0), ((H - W) // 2, (H - W) - (H - W) // 2), (0, 0))
+        else:
+            pad_width = (((W - H) // 2, (W - H) - (W - H) // 2), (0, 0))
+            if C > 1:
+                pad_width = (((W - H) // 2, (W - H) - (W - H) // 2), (0, 0), (0, 0))
+        
+        return np.pad(image, pad_width, mode='constant', constant_values=pad_value)
+    
     def __getitem__(self, index):
         annotation = self.annotations.iloc[index]
         img_info = {
@@ -102,6 +140,7 @@ class FishDataset(Dataset):
         
         try:
             image = self.imread(img_path)
+            image = self.pad_to_square(image)
         except (FileNotFoundError, IOError):
             image = Image.open(os.path.join(self.base_url_image, self.fallback_img_path)).convert('RGB')
             image = np.array(image)
